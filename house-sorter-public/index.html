@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>House Sorter — Deep Psychological House Sorting Quiz</title>
+    <!-- Browser tab icon -->
+    <link rel="icon" type="image/png" href="logo.png">
+    
+    <style>
+        :root {
+            --bg-dark: #090b10;
+            --card-bg: rgba(20, 24, 34, 0.94);
+            --gold: #e5b84b;
+            --gold-glow: rgba(229, 184, 75, 0.35);
+            --text-main: #edf2f7;
+            --text-muted: #94a3b8;
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --ambient-color: #161d2f;
+            --house-color: #e5b84b;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background: radial-gradient(circle at top, var(--ambient-color) 0%, var(--bg-dark) 75%);
+            color: var(--text-main);
+            font-family: 'Georgia', serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            overflow-x: hidden;
+            position: relative;
+            transition: background 1.2s ease;
+        }
+
+        /* Magical Floating Particles */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            bottom: -10px;
+            background: var(--gold);
+            border-radius: 50%;
+            opacity: 0;
+            animation: floatUp linear infinite;
+            box-shadow: 0 0 8px var(--gold);
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(0.5); opacity: 0; }
+            20% { opacity: 0.6; }
+            80% { opacity: 0.3; }
+            100% { transform: translateY(-105vh) scale(1.2); opacity: 0; }
+        }
+
+        /* Wand Cursor Sparkles */
+        .cursor-sparkle {
+            position: fixed;
+            pointer-events: none;
+            width: 6px;
+            height: 6px;
+            background: var(--gold);
+            border-radius: 50%;
+            z-index: 9999;
+            box-shadow: 0 0 10px var(--gold);
+            animation: sparkFade 0.6s forwards;
+        }
+
+        @keyframes sparkFade {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(0.2) translateY(15px); opacity: 0; }
+        }
+
+        /* Main Container */
+        .container {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-subtle);
+            border-top: 1px solid rgba(229, 184, 75, 0.3);
+            border-radius: 16px;
+            max-width: 680px;
+            width: 100%;
+            padding: 40px 35px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75), 0 0 30px rgba(229, 184, 75, 0.05);
+            margin-top: 20px;
+            z-index: 1;
+            transition: border-color 0.6s ease, box-shadow 0.6s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Header SVG */
+        .brand-header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .hat-logo {
+            width: 74px;
+            height: 74px;
+            margin: 0 auto 10px;
+            display: block;
+            filter: drop-shadow(0 0 12px var(--gold-glow));
+            animation: hatFloat 4s ease-in-out infinite;
+        }
+
+        @keyframes hatFloat {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-6px) rotate(2deg); }
+        }
+
+        .brand-name {
+            font-size: 0.85rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 6px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-weight: 600;
+        }
+
+        h1 {
+            color: #ffffff;
+            font-size: 1.85rem;
+            margin: 0 0 8px 0;
+            font-weight: normal;
+            letter-spacing: 0.5px;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin: 0;
+            font-style: italic;
+        }
+
+        /* Progress Bar */
+        .progress-wrapper {
+            margin-bottom: 26px;
+        }
+
+        .progress-meta {
+            display: flex;
+            justify-content: space-between;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 99px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 3.33%;
+            background: linear-gradient(90deg, #b8860b, var(--gold));
+            border-radius: 99px;
+            transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+            box-shadow: 0 0 10px var(--gold-glow);
+        }
+
+        /* Question Transition Animation */
+        .fade-enter {
+            animation: fadeSlideIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        @keyframes fadeSlideIn {
+            0% { opacity: 0; transform: translateY(14px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        .question-text {
+            font-size: 1.22rem;
+            margin-bottom: 22px;
+            line-height: 1.6;
+            color: #f8fafc;
+        }
+
+        /* Option Buttons with Ink Ripple */
+        .option-btn {
+            display: block;
+            width: 100%;
+            background: rgba(30, 36, 51, 0.75);
+            color: var(--text-main);
+            border: 1px solid var(--border-subtle);
+            padding: 16px 20px;
+            margin-bottom: 12px;
+            border-radius: 10px;
+            text-align: left;
+            font-size: 1rem;
+            font-family: inherit;
+            line-height: 1.45;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option-btn:hover {
+            background: rgba(45, 55, 78, 0.9);
+            border-color: var(--gold);
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .ripple {
+            position: absolute;
+            background: rgba(229, 184, 75, 0.35);
+            border-radius: 50%;
+            transform: scale(0);
+            animation: rippleEffect 0.5s linear;
+            pointer-events: none;
+        }
+
+        @keyframes rippleEffect {
+            to { transform: scale(4); opacity: 0; }
+        }
+
+        /* Thinking Overlay */
+        .thinking-box {
+            text-align: center;
+            padding: 40px 10px;
+        }
+
+        .thinking-hat {
+            width: 95px;
+            height: 95px;
+            margin: 0 auto 20px;
+            animation: hatPonder 1.2s ease-in-out infinite;
+            filter: drop-shadow(0 0 18px var(--gold));
+        }
+
+        @keyframes hatPonder {
+            0%, 100% { transform: rotate(-6deg) scale(1); }
+            50% { transform: rotate(6deg) scale(1.06); }
+        }
+
+        .thinking-text {
+            font-size: 1.2rem;
+            color: var(--gold);
+            font-style: italic;
+            animation: pulseText 1.5s infinite;
+        }
+
+        @keyframes pulseText {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        /* Results Screen & Crest Image Animations */
+        .result-box {
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .result-label {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .house-title {
+            font-size: 2.6rem;
+            margin: 10px 0 14px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-shadow: 0 0 25px currentColor;
+        }
+
+        .house-desc {
+            font-size: 1.05rem;
+            line-height: 1.7;
+            color: #cbd5e1;
+            margin-bottom: 28px;
+            min-height: 80px;
+            text-align: left;
+            background: rgba(15, 20, 30, 0.7);
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .crest-img {
+            width: 105px;
+            height: 105px;
+            margin: 0 auto 15px;
+            object-fit: contain;
+            display: block;
+            mix-blend-mode: screen;
+            filter: drop-shadow(0 0 18px var(--house-color));
+            animation: crestPopIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, crestFloat 4s ease-in-out infinite 0.8s;
+        }
+
+        @keyframes crestPopIn {
+            0% { transform: scale(0) rotate(-15deg); opacity: 0; }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        @keyframes crestFloat {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-6px) rotate(1.5deg); }
+        }
+
+        .breakdown {
+            background: rgba(11, 14, 22, 0.8);
+            border: 1px solid var(--border-subtle);
+            padding: 22px;
+            border-radius: 12px;
+            margin-bottom: 26px;
+            text-align: left;
+            position: relative;
+            z-index: 2;
+        }
+
+        .breakdown-title {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        .bar-row {
+            margin-bottom: 14px;
+        }
+
+        .bar-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .bar-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.95rem;
+            margin-bottom: 6px;
+        }
+
+        .bar-track {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 99px;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            border-radius: 99px;
+            width: 0%;
+            transition: width 1s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .restart-btn {
+            background: linear-gradient(135deg, #d4a024, var(--gold));
+            color: #090b10;
+            border: none;
+            padding: 14px 32px;
+            font-size: 1rem;
+            font-weight: bold;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 4px 18px var(--gold-glow);
+            position: relative;
+            z-index: 2;
+        }
+
+        .restart-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(229, 184, 75, 0.55);
+        }
+
+        footer {
+            margin-top: auto;
+            padding-top: 35px;
+            text-align: center;
+            font-size: 0.78rem;
+            color: #64748b;
+            max-width: 680px;
+            line-height: 1.5;
+            z-index: 1;
+        }
+
+        @media (max-width: 500px) {
+            .container { padding: 28px 20px; }
+            h1 { font-size: 1.5rem; }
+            .question-text { font-size: 1.1rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="particles" id="particles"></div>
+
+<div class="container" id="main-card">
+    <div class="brand-header">
+        <svg class="hat-logo" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M50 8C44 22 36 33 34 45C31 58 26 68 22 74C13 77 7 81 8 85C9 90 29 93 52 92C75 91 93 86 92 81C91 77 84 74 75 72C71 64 68 52 63 40C59 30 62 19 67 12C61 11 55 10 50 8Z" fill="#1e2433" stroke="#e5b84b" stroke-width="2.5" stroke-linejoin="round"/>
+            <path d="M36 48C43 45 53 45 61 49" stroke="#e5b84b" stroke-width="2" stroke-linecap="round"/>
+            <path d="M32 61C42 66 56 66 67 60" stroke="#e5b84b" stroke-width="2.2" stroke-linecap="round"/>
+            <circle cx="22" cy="28" r="1.8" fill="#e5b84b"/>
+            <circle cx="79" cy="34" r="2.2" fill="#e5b84b"/>
+            <circle cx="75" cy="18" r="1.3" fill="#e5b84b"/>
+        </svg>
+        <div class="brand-name">House Sorter</div>
+        <h1>The Psychological Sorting Hat</h1>
+        <p class="subtitle">30 deep character scenarios. No random fluff—only who you truly are.</p>
+    </div>
+    
+    <div id="quiz-area">
+        <div class="progress-wrapper">
+            <div class="progress-meta">
+                <span id="progress-text">Question 1 of 30</span>
+                <span id="progress-percent">3%</span>
+            </div>
+            <div class="progress-track">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+        </div>
+        <div id="question-container" class="fade-enter">
+            <div class="question-text" id="question">Loading...</div>
+            <div id="options"></div>
+        </div>
+    </div>
+
+    <div id="thinking-area" class="thinking-box" style="display: none;">
+        <svg class="thinking-hat" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M50 8C44 22 36 33 34 45C31 58 26 68 22 74C13 77 7 81 8 85C9 90 29 93 52 92C75 91 93 86 92 81C91 77 84 74 75 72C71 64 68 52 63 40C59 30 62 19 67 12C61 11 55 10 50 8Z" fill="#1e2433" stroke="#e5b84b" stroke-width="2.5" stroke-linejoin="round"/>
+            <path d="M36 48C43 52 53 52 61 48" stroke="#e5b84b" stroke-width="2.2" stroke-linecap="round"/>
+            <path d="M33 63C43 59 55 59 66 63" stroke="#e5b84b" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+        <div class="thinking-text" id="thinking-msg">"Hmm... difficult. Very difficult..."</div>
+    </div>
+
+    <div id="result-area" class="result-box" style="display: none;">
+        <div id="crest-container"></div>
+        <div class="result-label">The Hat Has Spoken</div>
+        <div class="house-title" id="house-name"></div>
+        <div class="house-desc" id="house-desc"></div>
+        <div class="breakdown">
+            <div class="breakdown-title">Psychological House Affinity</div>
+            <div id="breakdown-bars"></div>
+        </div>
+        <button class="restart-btn" onclick="restartQuiz()">Retake the Assessment</button>
+    </div>
+</div>
+
+<footer>
+    Disclaimer: House Sorter is an independent, fan-made psychological personality assessment inspired by the Harry Potter universe. This site is not affiliated with, endorsed, or sponsored by Warner Bros. Entertainment, Pottermore, or J.K. Rowling.
+</footer>
+
+<script>
+    const particlesContainer = document.getElementById('particles');
+    for (let i = 0; i < 24; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        const size = Math.random() * 3.5 + 1.5;
+        p.style.width = `${size}px`;
+        p.style.height = `${size}px`;
+        p.style.left = `${Math.random() * 100}%`;
+        p.style.animationDuration = `${Math.random() * 10 + 8}s`;
+        p.style.animationDelay = `${Math.random() * 8}s`;
+        particlesContainer.appendChild(p);
+    }
+
+    document.addEventListener('mousemove', (e) => {
+        if (Math.random() > 0.3) return;
+        const sparkle = document.createElement('div');
+        sparkle.className = 'cursor-sparkle';
+        sparkle.style.left = `${e.clientX}px`;
+        sparkle.style.top = `${e.clientY}px`;
+        document.body.appendChild(sparkle);
+        setTimeout(() => sparkle.remove(), 600);
+    });
+
+    const questions = [
+        {
+            text: "You discover a hidden flaw in an organization you belong to that benefits you personally, but harms others quietly. What do you do?",
+            options: [
+                { text: "Expose it immediately, regardless of the personal backlash or cost to yourself.", house: "Gryffindor" },
+                { text: "Use the leverage it gives you to quietly protect yourself and your close allies.", house: "Slytherin" },
+                { text: "Document how the flaw works mathematically and propose a bulletproof structural fix.", house: "Ravenclaw" },
+                { text: "Reach out privately to those being harmed and work behind the scenes to support them.", house: "Hufflepuff" }
+            ]
+        },
+        {
+            text: "When facing a monumental obstacle with no clear solution, what is your initial psychological reaction?",
+            options: [
+                { text: "A surge of adrenaline—danger and high stakes make you feel alive and ready to charge forward.", house: "Gryffindor" },
+                { text: "Cold calculation—you scan the board for leverage, hidden advantages, and shortcuts.", house: "Slytherin" },
+                { text: "Intense curiosity—you want to dissect why the obstacle exists and understand its rules.", house: "Ravenclaw" },
+                { text: "Steady resolve—you ground yourself and prepare for a long, grueling test of endurance.", house: "Hufflepuff" }
+            ]
+        },
+        {
+            text: "What is your absolute biggest fear when you look at your future?",
+            options: [
+                { text: "Living a cowardly life where you backed down when it mattered most.", house: "Gryffindor" },
+                { text: "Ending up completely ordinary, overlooked, and powerless to shape your destiny.", house: "Slytherin" },
+                { text: "Living with willful ignorance, missing crucial truths, or making foolish errors.", house: "Ravenclaw" },
+                { text: "Being isolated, unloved, or failing the people who put their trust in you.", house: "Hufflepuff" }
+            ]
+        },
+        {
+            text: "You are forced into a bitter conflict where compromise is impossible. How do you approach the confrontation?",
+            options: [
+                { text: "Head-on, with raw honesty and a refusal to back down from what you believe is right.", house: "Gryffindor" },
+                { text: "Tactically—you look for their vulnerabilities and strike where it hurts them most to secure victory.", house: "Slytherin" },
+                { text: "Through flawless logic—you dismantle their entire argument until their position collapses.", house: "Ravenclaw" },
+                { text: "By trying to mediate or protect the innocent bystanders caught in the crossfire.", house: "Hufflepuff" }
+            ]
+        },
+        {
+            text: "Which of these virtues do you secretly consider the most overrated?",
+            options: [
+                { text: "Cautious patience—waiting around usually just lets problems get worse.", house: "Gryffindor" },
+                { text: "Selfless martyrdom—sacrificing everything without gaining anything is pointless.", house: "Slytherin" },
+                { text: "Blind faith and gut intuition—without logic, it’s just guessing.", house: "Ravenclaw" },
+                { text: "Ruthless ambition—stepping on others to get ahead is a hollow victory.", house: "Hufflepuff" }
+            ]
+        },
+        {
+            text: "If you could choose a unique intellectual or mental gift, which would you pick?",
+            options: [
+                { text: "The ability to read a person's core moral compass instantly upon meeting them.", house: "Gryffindor" },
+                { text: "The ability to see five moves ahead in any social or political situation.", house: "Slytherin" },
+                { text: "The ability to instantly master any complex system, language, or skill.", house: "Ravenclaw" },
+                { text: "The ability to absorb and ease the emotional distress of anyone around you.", house: "Hufflepuff" }
+            ]
+        },
+        {
+            text: "How do you handle a superior or leader who is clearly incompetent?",
+            options: [
+                { text: "Challenge their authority openly when they make a harmful mistake.", house: "Gryffindor" },
+                { text: "Work around them, manipulate the situation quietly, and take control of the outcome yourself.", house: "Slytherin" },
+                { text: "Gather hard data proving their incompetence and present a rational case to replace them.", house: "Ravenclaw" },
+                { text: "Keep your head down, do your work diligently, and help your peers cope with the mess.", house: "Hufflepuff" }
+            ]
+        },
+        {
+            text: "What kind of legacy do you want to leave behind after you are gone?",
+            options: [
+                { text: "That I stood as a shield for the weak and fought against tyranny.", house: "Gryffindor" },
+                { text: "That I achieved greatness, broke barriers, and left a permanent mark on the world.", house: "Slytherin" },
+                { text: "That I uncovered profound truths and expanded human understanding.", house: "Ravenclaw" },
+                { text: "That I was a steadfast friend who brought warmth, fairness, and safety to others.", house: "Hufflepuff" }
+            ]
+        },
+        {
+            text: "You accidentally break something of immense value belonging to a rival. What do you do?",
+            options: [
+                { text: "Confess immediately and take full responsibility like an honorable person.", house: "Gryffindor" },
+                { text: "Figure out how to use the situation to your advantage or quietly replace it before they notice.", house: "Slytherin" },
+                { text: "Examine how it broke to understand its structural weak points.", house: "Ravenclaw" },
+                { text: "Stay up all night fixing it or working to make amends so they aren't hurt by the loss.", house: "Hufflepuff" }
+            ]
+        },
+        {
+            text: "What trait do you find most difficult to tolerate in other human beings?",
+            options: [
+                { text: "Cowardice and moral paralysis when action is required.", house: "Gryffindor" },
+                { text: "Helplessness paired with a refusal to take control of one's own destiny.", house: "Slytherin" },
+                { text: "Willful ignorance and stubborn rejection of facts.", house: "Ravenclaw" },
+                { text: "Cruelty, selfishness, and betrayal of trust.", house: "Hufflepuff" }
+            ]
+        },
+        {
+            text: "You are offered a shortcut to achieve your biggest life goal, but taking it means abandoning a core principle you once swore by. What do you do?",
+            options: [
+                { text: "Reject it immediately. A victory won by betraying my principles means nothing.", house: "Gryffindor" },
+                { text: "Take it. Principles evolve, and results are what actually shape the world.", house: "Slytherin" },
+                { text: "Analyze whether the principle is actually logical or just an outdated emotional attachment.", house: "Ravenclaw" },
+                { text: "Decline it if taking the shortcut would hurt or disappoint anyone who believes in me.", house: "Hufflepuff" }
+            ]
+        },
+        {
+            text: "In a group crisis where panic has taken over, what role do you naturally step into?",
+            options: [
+                { text: "The frontline protector—taking the biggest risks so others stay safe.", house: "Gryffindor" },
+                { text: "The quiet orchestrator—making tough, unsentimental calls to ensure survival.", house: "Slytherin" },
+                { text: "The detached analyst—blocking out the noise to calculate the highest-probability escape route.", house: "Ravenclaw" },
+                { text: "The emotional anchor—calming people down and making sure nobody gets left behind.", house: "Hufflepuff" }
+            ]
+        },
+        {
+            text: "You uncover a dangerous secret about someone you deeply respect. How do you handle the truth?",
+            options: [
+                { text: "Confront them directly to their face and demand they make it right.", house: "Gryffindor" },
+                { text: "Keep the secret locked away—knowledge is leverage, and you never know when you'll need it.", house: "Slytherin" },
+                { text: "Investigate the full context first to be 100% sure your facts are completely accurate.", house: "Ravenclaw" },
+                { text: "Speak to them gently in private to understand their side and help them through it.", house: "Hufflepuff" }
+            ]
+        },
+        {
+            text: "What gives you the deepest sense of personal pride?",
+            options: [
+                { text: "Knowing I stood my ground when everyone else ran away.", house: "Gryffindor" },
+                { text: "Knowing I outmaneuvered the odds and built something powerful from nothing.", house: "Slytherin" },
+                { text: "Knowing I solved a puzzle or mastered an idea that baffled everyone else.", house: "Ravenclaw" },
+                { text: "Knowing I stayed loyal, fair, and kind even when nobody was watching.", house: "Hufflepuff" }
+            ]
+        },
+        {
+            text: "How do you view rules and authority in general?",
+            options: [
+                { text: "Rules are guidelines; if they stand in the way of doing the right thing, they deserve to be broken.", house: "Gryffindor" },
+                { text: "Rules are tools created by those in power—learn them well enough to bend them to your advantage.", house: "Slytherin" },
+                { text: "Rules are systems; good ones create order, and flawed ones should be redesigned logically.", house: "Ravenclaw" },
+                { text: "Rules keep society fair for everyone, and breaking them carelessly hurts the community.", house: "Hufflepuff" }
+            ]
+        },
+        {
+            text: "Someone you barely know is being publicly humiliated by a crowd. What is your gut impulse?",
+            options: [
+                { text: "Walk straight into the middle of it and defend them, even if the crowd turns on you.", house: "Gryffindor" },
+                { text: "Assess who is leading the crowd and find a clever way to turn the room against the bully.", house: "Slytherin" },
+                { text: "Point out the absurdity of the crowd's behavior with a sharp, undeniable observation.", house: "Ravenclaw" },
+                { text: "Wait for a moment to pull the person out of the crowd and check if they are okay.", house: "Hufflepuff" }
+            ]
+        },
+        {
+            text: "When learning something completely new and difficult, what frustrates you the most?",
+            options: [
+                { text: "Moving too slowly—I want to jump straight into the deep end and learn by doing.", house: "Gryffindor" },
+                { text: "Not seeing how this skill will give me a real-world edge or practical advantage.", house: "Slytherin" },
+                { text: "Teachers or guides who give shallow answers instead of explaining how the core mechanics work.", house: "Ravenclaw" },
+                { text: "Competitive environments where people hoard knowledge instead of helping each other learn.", house: "Hufflepuff" }
+            ]
+        },
+        {
+            text: "You are given complete, unchecked power over a small community for one year. What is your top priority?",
+            options: [
+                { text: "Eliminating corruption and fiercely protecting the vulnerable from exploitation.", house: "Gryffindor" },
+                { text: "Transforming the community into an unstoppable powerhouse of influence and wealth.", house: "Slytherin" },
+                { text: "Overhauling education, infrastructure, and systems for maximum efficiency and innovation.", house: "Ravenclaw" },
+                { text: "Ensuring every single person has equal opportunity, security, and a voice in decisions.", house: "Hufflepuff" }
+            ]
+        },
+        {
+            text: "How do you typically react after making a major mistake?",
+            options: [
+                { text: "Own up to it immediately, take the hit, and charge forward to fix the damage.", house: "Gryffindor" },
+                { text: "Minimize the fallout quickly, adapt the plan, and make sure it doesn't cost you your position.", house: "Slytherin" },
+                { text: "Replay every variable in your head until you understand the exact flaw in your reasoning.", house: "Ravenclaw" },
+                { text: "Apologize sincerely to anyone affected and work twice as hard to regain their trust.", house: "Hufflepuff" }
+            ]
+        },
+        {
+            text: "If you had to choose one path for the rest of your life, which would you pick?",
+            options: [
+                { text: "A life of constant adventure, danger, and fighting for causes worth dying for.", house: "Gryffindor" },
+                { text: "A life of ambition, influence, and rising to the very top of your chosen field.", house: "Slytherin" },
+                { text: "A life of endless discovery, unlocking the deepest mysteries of the mind and universe.", house: "Ravenclaw" },
+                { text: "A life surrounded by genuine, lifelong friends, building something meaningful together.", house: "Hufflepuff" }
+            ]
+        },
+        {
+            text: "You are trapped in a high-stakes negotiation where the other person holds all the obvious cards. How do you play it?",
+            options: [
+                { text: "Call their bluff directly—show zero fear and force them to prove they have the nerve to follow through.", house: "Gryffindor" },
+                { text: "Reframe the entire deal to make them think giving you what you want was actually their idea.", house: "Slytherin" },
+                { text: "Spot the subtle logical contradiction in their demands and dismantle their leverage piece by piece.", house: "Ravenclaw" },
+                { text: "Appeal to shared humanity and fairness—find a win-win compromise where nobody gets crushed.", house: "Hufflepuff" }
+            ]
+        },
+        {
+            text: "What kind of secret knowledge would tempt you the most if you found it locked in a forbidden archive?",
+            options: [
+                { text: "The hidden history of great rebellions and how ordinary people overthrew tyrants.", house: "Gryffindor" },
+                { text: "The unwritten rules of power, persuasion, and how empires are quietly controlled.", house: "Slytherin" },
+                { text: "The fundamental laws of reality, consciousness, and unanswered scientific mysteries.", house: "Ravenclaw" },
+                { text: "Forgotten healing arts and ways to restore broken communities or damaged minds.", house: "Hufflepuff" }
+            ]
+        },
+        {
+            text: "When someone betrays your trust, what is your honest internal reaction?",
+            options: [
+                { text: "Righteous anger—you confront them head-on, cut ties cleanly, and never look back.", house: "Gryffindor" },
+                { text: "Cold detachment—you file the lesson away and make sure they never have power over you again.", house: "Slytherin" },
+                { text: "Analytical confusion—you try to trace the exact psychological motive behind why they did it.", house: "Ravenclaw" },
+                { text: "Deep heartbreak—you wonder if there was something you missed or could have done differently.", house: "Hufflepuff" }
+            ]
+        },
+        {
+            text: "You have to choose one tool to survive alone in an unpredictable, hostile environment. What do you value most?",
+            options: [
+                { text: "A reliable weapon to defend yourself and face threats head-on.", house: "Gryffindor" },
+                { text: "A concealed kit of multi-purpose tools, disguises, and contingency supplies.", house: "Slytherin" },
+                { text: "A detailed map, compass, and field guide to understand the terrain and ecosystem.", house: "Ravenclaw" },
+                { text: "A sturdy shelter kit and signaling flare to stay safe and reconnect with allies.", house: "Hufflepuff" }
+            ]
+        },
+        {
+            text: "How do you feel about taking credit when a team project succeeds?",
+            options: [
+                { text: "Give loud, public credit to whoever took the biggest risks to make it happen.", house: "Gryffindor" },
+                { text: "Make sure decision-makers know your exact strategic contribution so your reputation grows.", house: "Slytherin" },
+                { text: "Focus on the accuracy of the final work—the quality of the result speaks for itself.", house: "Ravenclaw" },
+                { text: "Insist that everyone shares the credit equally, especially the quiet people who worked behind the scenes.", house: "Hufflepuff" }
+            ]
+        },
+        {
+            text: "If you were forced to break a promise to a friend, what would be the only acceptable reason?",
+            options: [
+                { text: "Breaking it was the only way to save someone's life or stop a terrible injustice.", house: "Gryffindor" },
+                { text: "Circumstances changed drastically, and keeping the promise would have ruined both of us.", house: "Slytherin" },
+                { text: "New facts came to light proving that keeping the promise would cause a catastrophic error.", house: "Ravenclaw" },
+                { text: "I wouldn't break it—I would find a way to keep my word no matter how much it cost me personally.", house: "Hufflepuff" }
+            ]
+        },
+        {
+            text: "What is your natural pace when working toward a massive, long-term goal?",
+            options: [
+                { text: "Intense, fearless bursts of action—diving straight into the hardest parts first.", house: "Gryffindor" },
+                { text: "Calculated, strategic milestones—constantly adapting my route to reach the top fastest.", house: "Slytherin" },
+                { text: "Deep, obsessive research and planning until every variable is understood before moving.", house: "Ravenclaw" },
+                { text: "Steady, disciplined daily effort—showing up every single day without fail until it's done.", house: "Hufflepuff" }
+            ]
+        },
+        {
+            text: "In a society where everyone is forced to conform to a single way of thinking, what role do you play?",
+            options: [
+                { text: "The vocal dissident who openly refuses to bend the knee, regardless of the punishment.", house: "Gryffindor" },
+                { text: "The double agent who plays along on the surface while quietly building an underground network.", house: "Slytherin" },
+                { text: "The independent thinker who preserves banned books, ideas, and objective truth.", house: "Ravenclaw" },
+                { text: "The quiet protector who shelters outcasts and keeps basic human kindness alive.", house: "Hufflepuff" }
+            ]
+        },
+        {
+            text: "When you look back at your hardest life moments, what helped you survive them?",
+            options: [
+                { text: "Pure grit and refusing to let fear dictate my choices.", house: "Gryffindor" },
+                { text: "Adapting fast, staying sharp, and turning bad situations into stepping stones.", house: "Slytherin" },
+                { text: "Stepping back emotionally to understand the problem clearly and think my way out.", house: "Ravenclaw" },
+                { text: "Holding onto the people I love and refusing to give up on them.", house: "Hufflepuff" }
+            ]
+        },
+        {
+            text: "At the very end of the test, the Sorting Hat whispers: \"I see great potential in you, but you must choose what drives your soul.\" Which inner truth do you claim?",
+            options: [
+                { text: "I choose courage—to act when others hesitate, even when I am terrified.", house: "Gryffindor" },
+                { text: "I choose ambition—to shape my own destiny and rise above every limitation.", house: "Slytherin" },
+                { text: "I choose wisdom—to seek the truth without bias, no matter where it leads.", house: "Ravenclaw" },
+                { text: "I choose loyalty—to stand by my people and build a world rooted in fairness.", house: "Hufflepuff" }
+            ]
+        }
+    ];
+
+    const houseInfo = {
+        Gryffindor: {
+            color: "#ff5c5c",
+            ambient: "#2a1515",
+            crest: "gryffindor.png",
+            desc: "You are anchored by moral courage, conviction, and decisive action. While others hesitate or rationalize away injustice, you step forward into the fire. Your greatest strength is your willingness to stand up for what is right, even when standing alone."
+        },
+        Slytherin: {
+            color: "#38d973",
+            ambient: "#112618",
+            crest: "slytherin.png",
+            desc: "You are driven by strategic ambition, self-determination, and sharp adaptability. You understand how power works beneath the surface and refuse to leave your destiny in anyone else's hands. Your greatest strength is turning obstacles into leverage."
+        },
+        Ravenclaw: {
+            color: "#4da6ff",
+            ambient: "#122033",
+            crest: "ravenclaw.png",
+            desc: "You are guided by intellectual honesty, curiosity, and independent thought. Where others react with blind emotion or herd instinct, you step back to uncover how the system actually works. Your greatest strength is clarity of mind."
+        },
+        Hufflepuff: {
+            color: "#facc15",
+            ambient: "#2c2610",
+            crest: "hufflepuff.png",
+            desc: "You are defined by fierce loyalty, fairness, and unbreakable endurance. You don't need applause or glory to do the right thing—your integrity stays steady when nobody is watching. Your greatest strength is building trust that endures any storm."
+        }
+    };
+
+    let currentQ = 0;
+    let scores = { Gryffindor: 0, Slytherin: 0, Ravenclaw: 0, Hufflepuff: 0 };
+
+    function shuffleArray(array) {
+        const copy = [...array];
+        for (let i = copy.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [copy[i], copy[j]] = [copy[j], copy[i]];
+        }
+        return copy;
+    }
+
+    function loadQuestion() {
+        const q = questions[currentQ];
+        const total = questions.length;
+        const pct = Math.round(((currentQ + 1) / total) * 100);
+
+        document.getElementById("progress-text").innerText = `Question ${currentQ + 1} of ${total}`;
+        document.getElementById("progress-percent").innerText = `${pct}%`;
+        document.getElementById("progress-fill").style.width = `${pct}%`;
+
+        let leadingHouse = Object.keys(scores).reduce((a, b) => scores[a] > scores[b] ? a : b);
+        if (scores[leadingHouse] > 0) {
+            document.documentElement.style.setProperty('--ambient-color', houseInfo[leadingHouse].ambient);
+        }
+
+        const qContainer = document.getElementById("question-container");
+        qContainer.classList.remove("fade-enter");
+        void qContainer.offsetWidth;
+        qContainer.classList.add("fade-enter");
+
+        document.getElementById("question").innerText = q.text;
+        
+        const optionsDiv = document.getElementById("options");
+        optionsDiv.innerHTML = "";
+        
+        const randomizedOptions = shuffleArray(q.options);
+        randomizedOptions.forEach(opt => {
+            const btn = document.createElement("button");
+            btn.className = "option-btn";
+            btn.innerText = opt.text;
+            
+            btn.onclick = (e) => {
+                const rect = btn.getBoundingClientRect();
+                const ripple = document.createElement('span');
+                ripple.className = 'ripple';
+                const size = Math.max(rect.width, rect.height);
+                ripple.style.width = ripple.style.height = `${size}px`;
+                ripple.style.left = `${e.clientX - rect.left - size/2}px`;
+                ripple.style.top = `${e.clientY - rect.top - size/2}px`;
+                btn.appendChild(ripple);
+                setTimeout(() => ripple.remove(), 500);
+
+                setTimeout(() => selectOption(opt.house), 200);
+            };
+
+            optionsDiv.appendChild(btn);
+        });
+    }
+
+    function selectOption(house) {
+        scores[house] += 1;
+        currentQ++;
+
+        if (currentQ < questions.length) {
+            loadQuestion();
+        } else {
+            startThinkingSequence();
+        }
+    }
+
+    function startThinkingSequence() {
+        document.getElementById("quiz-area").style.display = "none";
+        const thinkingArea = document.getElementById("thinking-area");
+        const thinkingMsg = document.getElementById("thinking-msg");
+        thinkingArea.style.display = "block";
+
+        const lines = [
+            "\"Hmm... difficult. Very difficult...\"",
+            "\"Plenty of character here, I see...\"",
+            "\"Where to put you? Better be...\""
+        ];
+
+        let step = 0;
+        const interval = setInterval(() => {
+            step++;
+            if (step < lines.length) {
+                thinkingMsg.innerText = lines[step];
+            } else {
+                clearInterval(interval);
+                thinkingArea.style.display = "none";
+                showResult();
+            }
+        }, 1100);
+    }
+
+    function showResult() {
+        document.getElementById("result-area").style.display = "block";
+
+        const sortedHouses = Object.keys(scores).sort((a, b) => scores[b] - scores[a]);
+        const topHouse = sortedHouses[0];
+        const total = questions.length;
+
+        document.documentElement.style.setProperty('--ambient-color', houseInfo[topHouse].ambient);
+        document.documentElement.style.setProperty('--house-color', houseInfo[topHouse].color);
+
+        const mainCard = document.getElementById("main-card");
+        mainCard.style.borderColor = houseInfo[topHouse].color;
+        mainCard.style.boxShadow = `0 20px 55px rgba(0,0,0,0.85), 0 0 35px ${houseInfo[topHouse].color}33`;
+
+        document.getElementById("crest-container").innerHTML = `<img src="${houseInfo[topHouse].crest}" class="crest-img" alt="${topHouse} Crest">`;
+
+        const titleEl = document.getElementById("house-name");
+        titleEl.innerText = topHouse.toUpperCase() + "!";
+        titleEl.style.color = houseInfo[topHouse].color;
+
+        const descEl = document.getElementById("house-desc");
+        descEl.innerText = "";
+        const words = houseInfo[topHouse].desc.split(" ");
+        let wordIndex = 0;
+
+        function typeWords() {
+            if (wordIndex < words.length) {
+                descEl.innerText += (wordIndex === 0 ? "" : " ") + words[wordIndex];
+                wordIndex++;
+                setTimeout(typeWords, 30);
+            }
+        }
+        typeWords();
+
+        const barsContainer = document.getElementById("breakdown-bars");
+        barsContainer.innerHTML = "";
+
+        sortedHouses.forEach(house => {
+            const pct = Math.round((scores[house] / total) * 100);
+            const row = document.createElement("div");
+            row.className = "bar-row";
+            row.innerHTML = `
+                <div class="bar-label">
+                    <span style="color: ${houseInfo[house].color}; font-weight: bold;">${house}</span>
+                    <span>${pct}% (${scores[house]}/30)</span>
+                </div>
+                <div class="bar-track">
+                    <div class="bar-fill" id="bar-${house}" style="background-color: ${houseInfo[house].color};"></div>
+                </div>
+            `;
+            barsContainer.appendChild(row);
+
+            setTimeout(() => {
+                document.getElementById(`bar-${house}`).style.width = `${pct}%`;
+            }, 100);
+        });
+    }
+
+    function restartQuiz() {
+        currentQ = 0;
+        scores = { Gryffindor: 0, Slytherin: 0, Ravenclaw: 0, Hufflepuff: 0 };
+        document.documentElement.style.setProperty('--ambient-color', '#161d2f');
+        const mainCard = document.getElementById("main-card");
+        mainCard.style.borderColor = "rgba(255, 255, 255, 0.08)";
+        mainCard.style.boxShadow = "0 20px 50px rgba(0, 0, 0, 0.75)";
+        document.getElementById("result-area").style.display = "none";
+        document.getElementById("quiz-area").style.display = "block";
+        loadQuestion();
+    }
+
+    loadQuestion();
+</script>
+
+</body>
+</html>

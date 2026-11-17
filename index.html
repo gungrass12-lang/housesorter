@@ -468,6 +468,7 @@
             <div id="breakdown-bars"></div>
         </div>
         <button class="restart-btn" onclick="restartQuiz()">Retake the Assessment</button>
+        <button class="restart-btn" onclick="shareResults()" style="background: rgba(20, 24, 34, 0.94); border: 1px solid rgba(255, 255, 255, 0.08); color: #e5b84b; margin-top: 10px;">Share Your Result 🚀</button>
     </div>
 </div>
 
@@ -475,6 +476,20 @@
     Disclaimer: House Sorter is an independent, fan-made psychological personality assessment inspired by the Harry Potter universe. This site is not affiliated with, endorsed, or sponsored by Warner Bros. Entertainment, Pottermore, or J.K. Rowling.
 </footer>
 
+    function shareResults() {
+  const shareData = {
+    title: 'House Sorter Quiz',
+    text: 'I just took the House Sorter quiz and found out my house! Take the quiz and find yours:',
+    url: window.location.href
+  };
+  
+  if (navigator.share) {
+    navigator.share(shareData).catch(() => {});
+  } else {
+    navigator.clipboard.writeText(window.location.href);
+    alert('Link copied to clipboard! Paste it to your friends.');
+  }
+}
 <script>
     const particlesContainer = document.getElementById('particles');
     for (let i = 0; i < 24; i++) {
